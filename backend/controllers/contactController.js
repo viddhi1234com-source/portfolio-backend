@@ -1,9 +1,13 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import Contact from '../models/Contact.js'; // ← Ye line add kar
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -12,7 +16,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendContactForm = async (req, res) => {
   const { name, email, message } = req.body;
-
+  
   console.log('Form Data Received:', req.body);
 
   if (!name || !email || !message) {
@@ -23,8 +27,14 @@ export const sendContactForm = async (req, res) => {
   }
 
   try {
+    // 1. Pehle DB mein save karo
+    const newContact = new Contact({ name, email, message });
+    await newContact.save();
+    console.log('Saved to DB:', newContact);
+
+    // 2. Phir mail bhejo
     await transporter.sendMail({
-      from: process.env.EMAIL_USER, 
+      from: '"Portfolio Contact" <viddhi1234.com@gmail.com>',
       to: process.env.EMAIL_USER,
       subject: `Portfolio: New Message from ${name}`,
       html: `
@@ -40,7 +50,7 @@ export const sendContactForm = async (req, res) => {
 
     res.status(200).json({ 
       success: true, 
-      message: 'Message sent successfully!' 
+      message: 'Message sent & saved successfully!' 
     });
 
   } catch (error) {
@@ -52,9 +62,17 @@ export const sendContactForm = async (req, res) => {
   }
 };
 
-export const getAllContacts = (req, res) => {
-  res.status(200).json({ 
-    success: true,
-    message: 'Contact API working' 
-  });
+export const getAllContacts = async (req, res) => {
+  try {
+    const contacts = await Contact.find().sort({ createdAt: -1 }); // Latest first
+    res.status(200).json({ 
+      success: true,
+      data: contacts 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch contacts' 
+    });
+  }
 };
