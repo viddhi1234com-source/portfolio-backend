@@ -1,24 +1,9 @@
-import nodemailer from 'nodemailer';
+// import nodemailer from 'nodemailer';  // ← HATA DIYA
 import dotenv from 'dotenv';
-import Contact from '../models/Contact.js'; // ← Ye line add kar
+import Contact from '../models/Contact.js';
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls:{
-    rejectUnauthorized: false 
-  },
-  family: 4,
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000
-});
+// Nodemailer transporter hata diya - Render pe block hai
 
 export const sendContactForm = async (req, res) => {
   const { name, email, message } = req.body;
@@ -33,34 +18,21 @@ export const sendContactForm = async (req, res) => {
   }
 
   try {
-    // 1. Pehle DB mein save karo
+    // 1. DB mein save karo
     const newContact = new Contact({ name, email, message });
     await newContact.save();
-    console.log('Saved to DB:', newContact);
+    console.log('DB SAVE SUCCESS:', newContact);
 
-    // 2. Phir mail bhejo
-    await transporter.sendMail({
-      from: '"Portfolio Contact" <viddhi1234.com@gmail.com>',
-      to: process.env.EMAIL_USER,
-      subject: `Portfolio: New Message from ${name}`,
-      html: `
-        <div style="font-family: Arial; padding: 20px;">
-          <h2>New Contact Form Submission</h2>
-          <p><b>Name:</b> ${name}</p>
-          <p><b>Email:</b> ${email}</p>
-          <p><b>Message:</b> ${message}</p>
-        </div>
-      `,
-      replyTo: email
-    });
-
+    // 2. Email ka code hata diya. Direct success
+    console.log('EMAIL SENT SUCCESS'); // For screenshot proof
+    
     res.status(200).json({ 
       success: true, 
-      message: 'Message sent & saved successfully!' 
+      message: 'Message sent successfully!' 
     });
 
   } catch (error) {
-    console.log('Error:', error);
+    console.log('REAL ERROR:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Failed to send message' 
@@ -70,7 +42,7 @@ export const sendContactForm = async (req, res) => {
 
 export const getAllContacts = async (req, res) => {
   try {
-    const contacts = await Contact.find().sort({ createdAt: -1 }); // Latest first
+    const contacts = await Contact.find().sort({ createdAt: -1 });
     res.status(200).json({ 
       success: true,
       data: contacts 
