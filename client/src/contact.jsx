@@ -17,10 +17,15 @@ function Contact() {
     e.preventDefault();
     try {
       const response = await axios.post('https://portfolio-backend-987s.onrender.com/api/contact', formData);
-      alert('Message sent successfully!');
-      setFormData({ name: '', email: '', message: '' });
+      
+      if (response.data.success) {
+        alert('Message sent successfully!');
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        alert('Failed to send message');
+      }
     } catch (error) {
-      alert('Error sending message');
+      alert('Server error. Try again');
       console.log(error);
     }
   };
