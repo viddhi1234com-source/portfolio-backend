@@ -4,7 +4,6 @@ import Contact from '../models/Contact.js'; // ← Ye line add kar
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
   host: 'smtp.gmail.com',
   port: 587,
   secure: false,
@@ -14,7 +13,11 @@ const transporter = nodemailer.createTransport({
   },
   tls:{
     rejectUnauthorized: false 
-  }
+  },
+  family: 4,
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000
 });
 
 export const sendContactForm = async (req, res) => {
